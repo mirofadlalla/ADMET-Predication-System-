@@ -1,0 +1,8 @@
+numpy<2.0.0
+chemprop>=1.6.0
+rdkit>=2023.03
+pandas>=1.5.0
+fastapi>=0.104.0
+uvicorn>=0.24.0
+pydantic>=2.0.0
+requests>=2.31.0

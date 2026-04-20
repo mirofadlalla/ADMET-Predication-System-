@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.log
+.DS_Store
+*.ckpt
+*.zip
+*.tar.gz
+logs/
