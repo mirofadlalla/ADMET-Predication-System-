@@ -1,0 +1,100 @@
+name: Build and Test Docker Compose
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build Docker images
+        run: |
+          cd admet_inference
+          docker-compose build
+      
+      - name: Start Docker Compose services
+        run: |
+          cd admet_inference
+          docker-compose up -d
+          echo "Waiting for services to start..."
+          sleep 10
+      
+      - name: Check Docker Compose status
+        run: |
+          cd admet_inference
+          docker-compose ps
+      
+      - name: Wait for API to be ready
+        run: |
+          cd admet_inference
+          max_attempts=30
+          attempt=1
+          while [ $attempt -le $max_attempts ]; do
+            if curl -f http://localhost:8000/health > /dev/null 2>&1; then
+              echo "✓ API is ready"
+              exit 0
+            fi
+            echo "Attempt $attempt/$max_attempts: API not ready yet, waiting..."
+            sleep 2
+            ((attempt++))
+          done
+          echo "✗ API failed to start"
+          docker-compose logs
+          exit 1
+      
+      - name: Test root endpoint
+        run: |
+          echo "Testing GET /"
+          curl -f -X GET http://localhost:8000/ | tee response.json
+          echo ""
+      
+      - name: Test health endpoint
+        run: |
+          echo "Testing GET /health"
+          curl -f -X GET http://localhost:8000/health | tee response.json
+          echo ""
+      
+      - name: Test models status endpoint
+        run: |
+          echo "Testing GET /models/status"
+          curl -f -X GET http://localhost:8000/models/status | tee response.json
+          echo ""
+      
+      - name: Test predict endpoint with valid SMILES
+        run: |
+          echo "Testing POST /predict"
+          curl -f -X POST http://localhost:8000/predict \
+            -H "Content-Type: application/json" \
+            -d '{"smiles": "c1ccccc1"}' | tee response.json
+          echo ""
+      
+      - name: Test batch predict endpoint
+        run: |
+          echo "Testing POST /predict_batch"
+          curl -f -X POST http://localhost:8000/predict_batch \
+            -H "Content-Type: application/json" \
+            -d '{"smiles_list": ["c1ccccc1", "CC(C)Cc1ccc(cc1)C(C)C"]}' | tee response.json
+          echo ""
+      
+      - name: Check logs on failure
+        if: failure()
+        run: |
+          cd admet_inference
+          echo "=== Docker Compose Logs ==="
+          docker-compose logs admet-api
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          cd admet_inference
+          docker-compose down

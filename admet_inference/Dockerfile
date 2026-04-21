@@ -16,11 +16,10 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Copy requirements and build wheels
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir --default-timeout=1000 -r requirements.txt && \
     find /opt/venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
     find /opt/venv -type f -name "*.pyc" -delete && \
-    find /opt/venv -type f -name "*.pyo" -delete && \
-    find /opt/venv/lib -name "*.dist-info" -type d -exec rm -rf {} + 2>/dev/null || true
+    find /opt/venv -type f -name "*.pyo" -delete
 
 # ============================================================
 # Stage 2: Runtime - Minimal production image
@@ -55,9 +54,9 @@ USER admet
 # Expose API port
 EXPOSE 8000
 
-# Health check (using python instead of curl for smaller image)
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/health', timeout=5)" || exit 1
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:8000/health')" || exit 1
 
-# Run FastAPI application (optimized for CPU)
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+# Run FastAPI application
+CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
