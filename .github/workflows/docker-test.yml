@@ -20,19 +20,19 @@ jobs:
       - name: Build Docker images
         run: |
           cd admet_inference
-          docker-compose build
+          docker compose build
       
       - name: Start Docker Compose services
         run: |
           cd admet_inference
-          docker-compose up -d
+          docker compose up -d
           echo "Waiting for services to start..."
           sleep 10
       
       - name: Check Docker Compose status
         run: |
           cd admet_inference
-          docker-compose ps
+          docker compose ps
       
       - name: Wait for API to be ready
         run: |
@@ -49,7 +49,7 @@ jobs:
             ((attempt++))
           done
           echo "✗ API failed to start"
-          docker-compose logs
+          docker compose logs
           exit 1
       
       - name: Test root endpoint
@@ -91,10 +91,10 @@ jobs:
         run: |
           cd admet_inference
           echo "=== Docker Compose Logs ==="
-          docker-compose logs admet-api
+          docker compose logs admet-api
       
       - name: Cleanup
         if: always()
         run: |
           cd admet_inference
-          docker-compose down
+          docker compose down
