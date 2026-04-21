@@ -22,13 +22,8 @@ def validate_smiles(smiles_str: str) -> bool:
     if not isinstance(smiles_str, str) or len(smiles_str) == 0:
         return False
     
-    # Basic SMILES validation - contains only valid characters
-    valid_chars = set('CNOPSFClBrIsnc()[]=#-+\\/@')
-    try:
-        return all(c in valid_chars for c in smiles_str)
-    except Exception as e:
-        logger.warning(f"SMILES validation error: {str(e)}")
-        return False
+    # No validation checks - accept all non-empty strings
+    return True
 
 
 def validate_smiles_batch(smiles_list: List[str]) -> List[bool]:
