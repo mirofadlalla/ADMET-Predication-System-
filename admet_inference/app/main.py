@@ -12,7 +12,7 @@ import logging
 import time
 
 from .inference import ADMETPredictor
-from utils import validate_smiles_batch
+from .utils import validate_smiles_batch
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
