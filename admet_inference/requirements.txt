@@ -1,9 +1,7 @@
 numpy==1.26.4
-torch==2.10.0
-chemprop==2.2.3
-rdkit==2026.3.1
+chemprop>=2.0.0
+rdkit>=2023.09.1
 pandas==2.3.3
-
 fastapi==0.135.3
 uvicorn==0.44.0
 pydantic==2.12.3

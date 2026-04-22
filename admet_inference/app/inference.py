@@ -84,10 +84,13 @@ class ADMETPredictor:
                             continue
                         
                         model = self.models[task]
-                        batch = batch[0].to(self.device), batch[1]
-                        
+                        # Unpack batch tuple (features, targets)
                         output = model(batch[0], batch[1])
-                        predictions[task] = float(output.cpu().numpy()[0][0])
+                        # Handle different output shapes
+                        if isinstance(output, torch.Tensor):
+                            predictions[task] = float(output.cpu().numpy().flatten()[0])
+                        else:
+                            predictions[task] = None
             
             return {
                 "smiles": smiles,
